@@ -4,99 +4,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Question Claims</title>
+<title>Who's Answering</title>
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--mut:#777;--line:#ddd;--empty:#f1f1ef;--d:#1f6feb;--h:#ea580c;--ok:#15803d;--bad:#b91c1c}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151515;--fg:#eee;--mut:#999;--line:#333;--empty:#262626}}
-:root[data-theme="dark"]{--bg:#151515;--fg:#eee;--mut:#999;--line:#333;--empty:#262626}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:8px}
-.top{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
-.key{display:flex;gap:8px;font-weight:600}
-.key span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px}
-.key .D::before{background:var(--d)}.key .H::before{background:var(--h)}
-#status{margin-left:auto;font-size:11px;color:var(--mut)}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:4px;vertical-align:middle}
-.dot.on{background:var(--ok)}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px}
-.t{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--empty);color:var(--mut);font:700 18px/1 inherit;cursor:pointer;user-select:none}
-.t.D{background:var(--d);border-color:var(--d);color:#fff}
-.t.H{background:var(--h);border-color:var(--h);color:#fff}
-.foot{margin-top:10px;display:flex;gap:10px;font-size:11px;color:var(--mut);flex-wrap:wrap}
-.foot button{font:inherit;color:var(--mut);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
+:root{--d:#1f6feb;--h:#ea580c}
+html,body{margin:0;height:100%}
+body{background:var(--d);color:#fff;font:700 28px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:background .15s}
+body.H{background:var(--h)}
+#name{text-align:center}
+#st{position:fixed;top:6px;right:8px;font:600 11px/1 sans-serif;opacity:.85}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4d4d;margin-right:4px;vertical-align:middle;border:1px solid #fff}
+.dot.on{background:#3ddc84}
 </style>
 </head>
 <body>
-<div class="top">
-  <div class="key"><span class="D">Dhruv</span><span class="H">Hudson</span></div>
-  <span id="status"></span>
-</div>
-<div id="grid"></div>
-<div class="foot">
-  <span>Click: blank → Dhruv → Hudson → blank. Shift-click: Hudson.</span>
-  <button onclick="more()">+ 10 tiles</button>
-  <button onclick="resetAll()">Clear all</button>
-</div>
+<div id="name">Dhruv</div>
+<div id="st"></div>
 <script>
 const ROOM = (location.hash.slice(1) || "calescent-yc-9nov-r7k2m9wq").replace(/[^a-zA-Z0-9_-]/g, "");
 const CID = Math.random().toString(36).slice(2, 10);
-const state = {};  // key -> {v, ts}
+const KEY = "who";
+let cur = {v: "D", ts: 0};
 const T = [], status = {};
-const NEXT = {"": "D", D: "H", H: ""};
 
-function apply(k, v, ts) { const c = state[k]; if (c && c.ts >= ts) return false; state[k] = {v, ts}; return true; }
-function set(k, v) {
-  const ts = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-  apply(k, v, ts); render();
-  const m = {k, v, ts, c: CID};
-  T.forEach(t => { try { t.send(m); } catch (e) {} });
-}
-function recv(m) { if (m && typeof m.k === "string" && typeof m.ts === "number" && apply(m.k, m.v, m.ts)) render(); }
+function render() { document.body.className = cur.v; document.getElementById("name").textContent = cur.v === "H" ? "Hudson" : "Dhruv"; }
+function recv(m) { if (m && m.k === KEY && typeof m.ts === "number" && m.ts > cur.ts) { cur = {v: m.v, ts: m.ts}; render(); } }
 function setStatus(n, ok) { status[n] = ok; const any = Object.values(status).some(Boolean);
-  document.getElementById("status").innerHTML = '<span class="dot' + (any ? " on" : "") + '"></span>' + (any ? "live" : "connecting…"); }
+  document.getElementById("st").innerHTML = '<span class="dot' + (any ? " on" : "") + '"></span>' + (any ? "live" : "connecting…"); }
+document.body.addEventListener("click", () => {
+  const m = {k: KEY, v: cur.v === "H" ? "D" : "H", ts: Date.now() * 1000 + Math.floor(Math.random() * 1000), c: CID};
+  recv(m);
+  T.forEach(t => { try { t.send(m); } catch (e) {} });
+});
 
-// MQTT over WSS, retained per key
+// MQTT over WSS (retained)
 (function () {
   const s = document.createElement("script");
   s.src = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
   s.onload = () => {
-    const base = "calescent/claims/" + ROOM + "/";
-    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "cl_" + CID, reconnectPeriod: 2000, connectTimeout: 8000});
-    cl.on("connect", () => { setStatus("mqtt", true); cl.subscribe(base + "#"); });
+    const topic = "calescent/who/" + ROOM;
+    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "w_" + CID, reconnectPeriod: 2000, connectTimeout: 8000});
+    cl.on("connect", () => { setStatus("mqtt", true); cl.subscribe(topic); });
     ["close", "offline", "error"].forEach(e => cl.on(e, () => setStatus("mqtt", false)));
     cl.on("message", (t, p) => { if (p.length) try { recv(JSON.parse(p.toString())); } catch (e) {} });
-    T.push({send: m => cl.publish(base + encodeURIComponent(m.k), JSON.stringify(m), {retain: true, qos: 1})});
+    T.push({send: m => cl.publish(topic, JSON.stringify(m), {retain: true, qos: 1})});
   };
   document.head.appendChild(s);
   setStatus("mqtt", false);
 })();
-// ntfy.sh, second channel on port 443
+// ntfy.sh on port 443
 (function () {
-  const topic = "https://ntfy.sh/" + ROOM;
-  const es = new EventSource(topic + "/sse?since=all");
+  const url = "https://ntfy.sh/" + ROOM + "-who";
+  const es = new EventSource(url + "/sse?since=all");
   es.onopen = () => setStatus("ntfy", true);
   es.onerror = () => setStatus("ntfy", false);
   es.onmessage = ev => { try { const d = JSON.parse(ev.data); if (d.event === "message") recv(JSON.parse(d.message)); } catch (e) {} };
-  T.push({send: m => fetch(topic, {method: "POST", body: JSON.stringify(m)}).catch(() => {})});
+  T.push({send: m => fetch(url, {method: "POST", body: JSON.stringify(m)}).catch(() => {})});
 })();
 // same-machine tabs
-try { const bc = new BroadcastChannel("claims-" + ROOM); bc.onmessage = e => recv(e.data); T.push({send: m => bc.postMessage(m)}); } catch (e) {}
-
-function count() { const n = state.n && state.n.v; return Math.max(20, +n || 0); }
-function render() {
-  const g = document.getElementById("grid"), n = count();
-  let h = "";
-  for (let i = 1; i <= n; i++) { const s = state["t" + i], v = s ? s.v : "";
-    h += '<button class="t ' + (v || "") + '" data-i="' + i + '" title="' + (v === "D" ? "Dhruv" : v === "H" ? "Hudson" : "") + '">' + i + "</button>"; }
-  g.innerHTML = h;
-}
-document.getElementById("grid").addEventListener("click", e => {
-  const b = e.target.closest(".t"); if (!b) return;
-  const k = "t" + b.dataset.i, cur = state[k] ? state[k].v : "";
-  set(k, e.shiftKey ? (cur === "H" ? "" : "H") : NEXT[cur || ""]);
-});
-function more() { set("n", count() + 10); }
-function resetAll() { if (!confirm("Clear all tiles for both of you?")) return; for (let i = 1; i <= count(); i++) if (state["t" + i] && state["t" + i].v) set("t" + i, ""); }
+try { const bc = new BroadcastChannel("who-" + ROOM); bc.onmessage = e => recv(e.data); T.push({send: m => bc.postMessage(m)}); } catch (e) {}
 render();
 </script>
 </body>
