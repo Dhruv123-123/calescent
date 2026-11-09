@@ -9,13 +9,14 @@
 :root{--d:#1f6feb;--h:#ea580c;--want:#15803d;--shut:#b91c1c;--bg:#111;--fg:#fff}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--fg);font:700 16px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;user-select:none}
-#in{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:30px;padding:10px;min-height:80px;transition:background .2s}
+#in{flex:2;display:flex;align-items:center;justify-content:center;text-align:center;font-size:30px;padding:10px;min-height:70px;background:var(--bg);color:#fff}
+#in.fade{transition:background 1.5s ease-in,color 1.5s ease-in;background:var(--bg)!important;color:#555}
 #in small{display:block;font-size:13px;opacity:.8;margin-top:6px;font-weight:600}
 #in.want{background:var(--want)}#in.shut{background:var(--shut)}
 #in.flash{animation:fl .35s ease-in-out 4}
 @keyframes fl{50%{filter:brightness(1.8)}}
-#btns{display:flex;gap:6px;padding:6px}
-#btns button{flex:1;border:0;border-radius:10px;padding:16px 6px;font:700 18px/1 inherit;color:#fff;cursor:pointer}
+#btns{flex:3;display:flex;gap:8px;padding:8px;min-height:120px}
+#btns button{flex:1;border:0;border-radius:14px;padding:10px;font-family:inherit;font-weight:800;font-size:clamp(24px,8vw,64px);line-height:1.1;color:#fff;cursor:pointer}
 #btns .want{background:var(--want)}#btns .shut{background:var(--shut)}
 #btns button:active{transform:scale(.97)}
 #bar{display:flex;align-items:center;gap:6px;padding:0 8px 6px;font:600 11px/1 sans-serif;opacity:.85}
@@ -64,6 +65,7 @@ function recv(m) {
   el.className = m.kind;
   el.innerHTML = "<div>" + (m.from === "Hudson" ? "Hudson" : "Dhruv") + ": " + LABEL[m.kind] + "<small>" + tm() + "</small></div>";
   void el.offsetWidth; el.classList.add("flash");
+  clearTimeout(window._fd); window._fd = setTimeout(() => el.classList.add("fade"), 3000);
 }
 
 // MQTT over WSS (not retained: only live signals)
