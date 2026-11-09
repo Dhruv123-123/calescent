@@ -4,65 +4,96 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Who's Answering</title>
+<title>Signals</title>
 <style>
-:root{--d:#1f6feb;--h:#ea580c}
+:root{--d:#1f6feb;--h:#ea580c;--want:#15803d;--shut:#b91c1c;--bg:#111;--fg:#fff}
 html,body{margin:0;height:100%}
-body{background:var(--d);color:#fff;font:700 28px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;transition:background .15s}
-body.H{background:var(--h)}
-#name{text-align:center}
-#st{position:fixed;top:6px;right:8px;font:600 11px/1 sans-serif;opacity:.85}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4d4d;margin-right:4px;vertical-align:middle;border:1px solid #fff}
+body{background:var(--bg);color:var(--fg);font:700 16px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;user-select:none}
+#in{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:30px;padding:10px;min-height:80px;transition:background .2s}
+#in small{display:block;font-size:13px;opacity:.8;margin-top:6px;font-weight:600}
+#in.want{background:var(--want)}#in.shut{background:var(--shut)}
+#in.flash{animation:fl .35s ease-in-out 4}
+@keyframes fl{50%{filter:brightness(1.8)}}
+#btns{display:flex;gap:6px;padding:6px}
+#btns button{flex:1;border:0;border-radius:10px;padding:16px 6px;font:700 18px/1 inherit;color:#fff;cursor:pointer}
+#btns .want{background:var(--want)}#btns .shut{background:var(--shut)}
+#btns button:active{transform:scale(.97)}
+#bar{display:flex;align-items:center;gap:6px;padding:0 8px 6px;font:600 11px/1 sans-serif;opacity:.85}
+#bar .me{cursor:pointer;text-decoration:underline}
+#sent{margin-left:auto}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4d4d;margin-right:4px;vertical-align:middle}
 .dot.on{background:#3ddc84}
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:9}
+#gate button{font:700 20px/1 inherit;padding:16px 28px;border:0;border-radius:10px;color:#fff;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="name">Dhruv</div>
-<div id="st"></div>
+<div id="gate"><div>Who are you?</div><div style="display:flex;gap:10px">
+  <button style="background:var(--d)" onclick="setMe('Dhruv')">Dhruv</button>
+  <button style="background:var(--h)" onclick="setMe('Hudson')">Hudson</button></div></div>
+<div id="in">Waiting…</div>
+<div id="btns">
+  <button class="want" onclick="send('want')">I want this</button>
+  <button class="shut" onclick="send('shut')">Shut up</button>
+</div>
+<div id="bar"><span id="st"></span><span>you are <span class="me" id="meName" onclick="document.getElementById('gate').style.display='flex'"></span></span><span id="sent"></span></div>
 <script>
-const ROOM = (location.hash.slice(1) || "calescent-yc-9nov-r7k2m9wq").replace(/[^a-zA-Z0-9_-]/g, "");
+const ROOM = (location.hash.slice(1) || "calescent-yc-9nov-r7k2m9wq").replace(/[^a-zA-Z0-9_-]/g, "") + "-sig";
 const CID = Math.random().toString(36).slice(2, 10);
-const KEY = "who";
-let cur = {v: "D", ts: 0};
-const T = [], status = {};
+const LABEL = {want: "I want this", shut: "Shut up"};
+let me = null; try { me = localStorage.getItem("sig-me"); } catch (e) {}
+const seen = new Set(), T = [], status = {};
 
-function render() { document.body.className = cur.v; document.getElementById("name").textContent = cur.v === "H" ? "Hudson" : "Dhruv"; }
-function recv(m) { if (m && m.k === KEY && typeof m.ts === "number" && m.ts > cur.ts) { cur = {v: m.v, ts: m.ts}; render(); } }
+function setMe(n) { me = n; try { localStorage.setItem("sig-me", n); } catch (e) {} document.getElementById("gate").style.display = "none"; document.getElementById("meName").textContent = n; }
 function setStatus(n, ok) { status[n] = ok; const any = Object.values(status).some(Boolean);
   document.getElementById("st").innerHTML = '<span class="dot' + (any ? " on" : "") + '"></span>' + (any ? "live" : "connecting…"); }
-document.body.addEventListener("click", () => {
-  const m = {k: KEY, v: cur.v === "H" ? "D" : "H", ts: Date.now() * 1000 + Math.floor(Math.random() * 1000), c: CID};
-  recv(m);
-  T.forEach(t => { try { t.send(m); } catch (e) {} });
-});
+function tm() { return new Date().toLocaleTimeString([], {hour: "numeric", minute: "2-digit", second: "2-digit"}); }
 
-// MQTT over WSS (retained)
+function send(kind) {
+  if (!me) { document.getElementById("gate").style.display = "flex"; return; }
+  const m = {id: CID + Date.now().toString(36), from: me, kind};
+  seen.add(m.id);
+  T.forEach(t => { try { t.send(m); } catch (e) {} });
+  document.getElementById("sent").textContent = "sent “" + LABEL[kind] + "” " + tm();
+}
+function recv(m) {
+  if (!m || !m.id || seen.has(m.id) || !LABEL[m.kind]) return;
+  seen.add(m.id);
+  if (m.from === me) return;
+  const el = document.getElementById("in");
+  el.className = m.kind;
+  el.innerHTML = "<div>" + (m.from === "Hudson" ? "Hudson" : "Dhruv") + ": " + LABEL[m.kind] + "<small>" + tm() + "</small></div>";
+  void el.offsetWidth; el.classList.add("flash");
+}
+
+// MQTT over WSS (not retained: only live signals)
 (function () {
   const s = document.createElement("script");
   s.src = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
   s.onload = () => {
-    const topic = "calescent/who/" + ROOM;
-    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "w_" + CID, reconnectPeriod: 2000, connectTimeout: 8000});
+    const topic = "calescent/sig/" + ROOM;
+    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "s_" + CID, reconnectPeriod: 2000, connectTimeout: 8000});
     cl.on("connect", () => { setStatus("mqtt", true); cl.subscribe(topic); });
     ["close", "offline", "error"].forEach(e => cl.on(e, () => setStatus("mqtt", false)));
-    cl.on("message", (t, p) => { if (p.length) try { recv(JSON.parse(p.toString())); } catch (e) {} });
-    T.push({send: m => cl.publish(topic, JSON.stringify(m), {retain: true, qos: 1})});
+    cl.on("message", (t, p, pk) => { if (pk && pk.retain) return; try { recv(JSON.parse(p.toString())); } catch (e) {} });
+    T.push({send: m => cl.publish(topic, JSON.stringify(m), {qos: 1})});
   };
   document.head.appendChild(s);
   setStatus("mqtt", false);
 })();
-// ntfy.sh on port 443
+// ntfy.sh on port 443 (new messages only)
 (function () {
-  const url = "https://ntfy.sh/" + ROOM + "-who";
-  const es = new EventSource(url + "/sse?since=all");
+  const url = "https://ntfy.sh/" + ROOM;
+  const es = new EventSource(url + "/sse");
   es.onopen = () => setStatus("ntfy", true);
   es.onerror = () => setStatus("ntfy", false);
   es.onmessage = ev => { try { const d = JSON.parse(ev.data); if (d.event === "message") recv(JSON.parse(d.message)); } catch (e) {} };
   T.push({send: m => fetch(url, {method: "POST", body: JSON.stringify(m)}).catch(() => {})});
 })();
 // same-machine tabs
-try { const bc = new BroadcastChannel("who-" + ROOM); bc.onmessage = e => recv(e.data); T.push({send: m => bc.postMessage(m)}); } catch (e) {}
-render();
+try { const bc = new BroadcastChannel(ROOM); bc.onmessage = e => recv(e.data); T.push({send: m => bc.postMessage(m)}); } catch (e) {}
+
+if (me) setMe(me);
 </script>
 </body>
 </html>
