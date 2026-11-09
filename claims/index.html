@@ -6,277 +6,98 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Question Claims</title>
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--mut:#6b6b6b;--line:#e3e3e3;--card:#f7f7f5;--d:#1f6feb;--h:#c2410c;--dbg:#e8f0fe;--hbg:#fdeee5;--ok:#15803d;--bad:#b91c1c;--sel:#fff7c2}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151515;--fg:#eee;--mut:#9a9a9a;--line:#2c2c2c;--card:#1d1d1d;--d:#6ea8ff;--h:#ff9a5c;--dbg:#1a2740;--hbg:#3a2316;--sel:#3a3416}}
-:root[data-theme="dark"]{--bg:#151515;--fg:#eee;--mut:#9a9a9a;--line:#2c2c2c;--card:#1d1d1d;--d:#6ea8ff;--h:#ff9a5c;--dbg:#1a2740;--hbg:#3a2316;--sel:#3a3416}
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#777;--line:#ddd;--empty:#f1f1ef;--d:#1f6feb;--h:#ea580c;--ok:#15803d;--bad:#b91c1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151515;--fg:#eee;--mut:#999;--line:#333;--empty:#262626}}
+:root[data-theme="dark"]{--bg:#151515;--fg:#eee;--mut:#999;--line:#333;--empty:#262626}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:6px 8px}
-.row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.me{display:flex;gap:4px}
-.me button{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:3px 8px;cursor:pointer;font:inherit}
-.me button.on.D{background:var(--d);color:#fff;border-color:var(--d)}
-.me button.on.H{background:var(--h);color:#fff;border-color:var(--h)}
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:8px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.key{display:flex;gap:8px;font-weight:600}
+.key span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-2px}
+.key .D::before{background:var(--d)}.key .H::before{background:var(--h)}
 #status{margin-left:auto;font-size:11px;color:var(--mut)}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:3px;vertical-align:middle}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:4px;vertical-align:middle}
 .dot.on{background:var(--ok)}
-#live{display:flex;gap:4px;margin-top:6px}
-#live input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:6px;padding:5px 7px;font:inherit}
-#live button{border:0;background:var(--fg);color:var(--bg);border-radius:6px;padding:5px 9px;font:inherit;cursor:pointer}
-.filters{display:flex;gap:8px;margin-top:5px;font-size:11px;color:var(--mut);align-items:center;flex-wrap:wrap}
-.filters label{cursor:pointer}
-main{padding:4px 6px 60px}
-h2{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:10px 4px 3px}
-.q{display:flex;align-items:flex-start;gap:5px;padding:4px;border-radius:6px;border:1px solid transparent}
-.q.sel{background:var(--sel)}
-.q.cD{background:var(--dbg)}
-.q.cH{background:var(--hbg)}
-.q.sel.cD,.q.sel.cH{outline:2px solid #e2b400}
-.q.done{opacity:.45}
-.q.done .t{text-decoration:line-through}
-.q.livenew{border-color:var(--fg)}
-.btns{display:flex;gap:2px;flex:none}
-.btns button{width:22px;height:22px;border-radius:5px;border:1px solid var(--line);background:var(--bg);color:var(--mut);font:600 11px/1 inherit;cursor:pointer;padding:0}
-.btns button.D.on{background:var(--d);border-color:var(--d);color:#fff}
-.btns button.H.on{background:var(--h);border-color:var(--h);color:#fff}
-.btns button.X.on{background:var(--ok);border-color:var(--ok);color:#fff}
-.body{flex:1;min-width:0;cursor:pointer}
-.t{font-weight:600}
-.who{font-size:11px;font-weight:700;margin-left:4px}
-.who.D{color:var(--d)}.who.H{color:var(--h)}
-.a{display:none;color:var(--fg);opacity:.85;margin-top:3px;font-size:12.5px;white-space:pre-wrap}
-.q.open .a,body.allopen .a{display:block}
-.num{color:var(--mut);font-size:11px;margin-right:2px}
-.help{font-size:11px;color:var(--mut);padding:8px}
-kbd{border:1px solid var(--line);border-radius:3px;padding:0 3px;font-size:10px}
-#gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;padding:16px;text-align:center}
-#gate button{font:600 18px/1 inherit;padding:14px 28px;border-radius:10px;border:0;color:#fff;cursor:pointer}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:6px}
+.t{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--empty);color:var(--mut);font:700 18px/1 inherit;cursor:pointer;user-select:none}
+.t.D{background:var(--d);border-color:var(--d);color:#fff}
+.t.H{background:var(--h);border-color:var(--h);color:#fff}
+.foot{margin-top:10px;display:flex;gap:10px;font-size:11px;color:var(--mut);flex-wrap:wrap}
+.foot button{font:inherit;color:var(--mut);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 8px;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="gate">
-  <div style="font-size:16px;font-weight:600">Who are you?</div>
-  <div style="display:flex;gap:10px"><button style="background:var(--d)" onclick="setMe('D')">Dhruv</button><button style="background:var(--h)" onclick="setMe('H')">Hudson</button></div>
-  <div class="help">Claims sync live between both computers. Press <kbd>?</kbd> later for shortcuts.</div>
+<div class="top">
+  <div class="key"><span class="D">Dhruv</span><span class="H">Hudson</span></div>
+  <span id="status"></span>
 </div>
-<header>
-  <div class="row1">
-    <strong>Claims</strong>
-    <div class="me"><button class="D" onclick="setMe('D')">Dhruv</button><button class="H" onclick="setMe('H')">Hudson</button></div>
-    <span id="status"></span>
-  </div>
-  <form id="live" onsubmit="addLive(event)">
-    <input id="liveIn" placeholder="Live question as it's asked… (press / to type, Enter adds &amp; claims for you)" autocomplete="off">
-    <button>Add</button>
-  </form>
-  <div class="filters">
-    <label><input type="checkbox" id="hideDone" onchange="render()"> hide answered</label>
-    <label><input type="checkbox" id="allOpen" onchange="document.body.classList.toggle('allopen',this.checked)"> show all answers</label>
-    <a href="#" onclick="resetAll();return false" style="color:var(--mut)">reset all</a>
-    <span><kbd>j</kbd>/<kbd>k</kbd> move <kbd>c</kbd> claim mine <kbd>d</kbd>/<kbd>h</kbd> assign <kbd>x</kbd> answered <kbd>u</kbd> clear <kbd>Enter</kbd> answer</span>
-  </div>
-</header>
-<main id="list"></main>
+<div id="grid"></div>
+<div class="foot">
+  <span>Click: blank → Dhruv → Hudson → blank. Shift-click: Hudson.</span>
+  <button onclick="more()">+ 10 tiles</button>
+  <button onclick="resetAll()">Clear all</button>
+</div>
 <script>
-// ---------- questions (from research/YC_INTERVIEW_PREP_2026-11-09.md) ----------
-const SECTIONS = [
- ["Openers", [
-  ["What are you building?","We're a geothermal power company. We find hidden hot-water reservoirs with a probe that reads existing wells and a model trained on every well in the West, then build and own the plants that sell the power."],
-  ["The pitch in one breath","We're a geothermal power company that explores 10 to 100 times cheaper than anyone else, so we own the whole chain from a $5 acre to a plant selling power at $100 a MWh."],
-  ["What's the insight? What do you believe that Zanskar doesn't?","Everyone collects data the wrong way and uses it the wrong way. They drill $30-125k holes one at a time (one reading per 90 km² below 150 m) and study each prospect on its own. We read wells that already exist for ~$1,200 and put every reading into one model."],
-  ["What's changed since you applied?","Went from a map to a power-company plan and into the field: first NorCal sites, found the state buyer (DWR buying up to 1 GW of geothermal from 2027), 721 open wells ranked, letters to 9 landowners ready, Lake County recorder Friday. Say only what's true today."],
- ]],
- ["The 19 mock questions", [
-  ["Most likely reason this doesn't work?","We can't get into enough wells. Permission, not hardware, is the bottleneck. So the right to log is in every option we sign, and our first log is with a water district that monitors its own wells."],
-  ["How many unmeasured wells would be useful? Why build the model first?","NV + UT alone have 13,126 open holes ≥150 m nobody has logged; the model tells us which few hundred matter. A log on the exact spot halves error at 1 km. Building it cost us only time."],
-  ["Why build a probe instead of buying one?","Commercial units cost $8-50k and are rated to ~70 °C. Ours is under $500 in parts and survives hot wells, so we can put one down every well."],
-  ["Why are you the people?","Best friends since high school; already built a fully autonomous tractor that worked in a real field. Hudson: fluid sensing. Dhruv: ML for natural-resource prospecting. This problem is exactly sensors plus models."],
-  ["How will you make money?","We sell power. A 20 MW plant earns ~$16M a year on a 15-20 year contract at over $100 a MWh. Before our first plant, we can lease proven sites for cash plus a royalty."],
-  ["Others are doing this. Why is that more attractive?","Not zero-sum: 23 GW undiscovered in the Great Basin vs under 600 MW built. Zanskar and Fervo proved buyers pay >$100/MWh. Zanskar: expensive data. Ormat: $1-5M a site near own fields. Fervo: makes reservoirs, costs more per MW."],
-  ["Who's your next hire?","Nobody yet. The two of us can take this to the first well. Later, a licensed geologist to scale field work."],
-  ["Will you stick at this?","Energy is the constraint on what the US can build, AI included. Contracts went from $60-80 to >$100/MWh. It's an open-ended search problem like a quant firm's; that's our next decade."],
-  ["Who's the boss?","No boss; we decide together. I spend more time on models, Hudson on sensors, we both touch everything. (Hudson's CEO on paper, it hasn't mattered.)"],
-  ["How much money will you have by Demo Day?","No revenue by Demo Day, by design. We'll have land locked with our own hot readings on it: the step that turns a $5 acre into a site worth millions."],
-  ["Then why is this attractive? First paying customer?","Owning the site from first reading to plant captures the climb from $5/acre to $4-6M per operating MW. First paying customer: a power buyer like California's DWR, buying up to 1 GW of geothermal from 2027."],
-  ["How big is the opportunity?","23 GW undiscovered in the Great Basin alone: about $18B a year of power, vs under 600 MW built today."],
-  ["What can you prove before a sophisticated model?","That the wells are there, we can get into them, and readings match predictions. 108 predictions already published on GitHub before measuring; first log this month."],
-  ["What will you have a month from now?","First temperature log in a real monitoring well, letters out to landowners, go/no-go on first California site from Friday's recorder visit, calls with developers' resource teams. (Only what's true.)"],
-  ["Why is more drilling good?","Geothermal fails because people drill blind. Every well we log makes the next hole cheaper to place: fewer dry wells, more power."],
-  ["Why is this good for humanity?","Clean power that runs 24/7 on a few acres. If finding it gets cheap, the West runs cities and data centres on heat from the ground instead of gas."],
-  ["\"We saw an idea like this and don't like it. What else?\"","Ego test, stay relaxed. \"Fair, what don't you like about it?\" Answer with one number. Fallback: sell the same cheap downhole sensing to water districts and carbon storage sites, but geothermal is where a cheap reading is worth most."],
-  ["Will you go full-time?","Dhruv: yes, full-time from day one if funded. Hudson: one exact sentence, no hedge (e.g. leave from Georgia Tech, in SF full-time for the batch)."],
- ]],
- ["Hardest questions", [
-  ["Plants sell for what they cost. Where's the margin in owning them?","Not in the steel; in owning the resource. We get it for $5/acre plus cheap exploration, when the industry spends millions per site. The plant earns a utility return on top; the cheap resource makes it venture."],
-  ["You'll need hundreds of millions. Why is this a YC company?","YC money goes into exploration: options and logs at thousands per site. Plants are project-financed: ~70% debt at 6-8% after a flow test, plus a 30% tax credit. Zanskar raised ~$180M equity on the same plan."],
-  ["Why not just sell sites to Ormat and stay capital-light?","We can at any step. But a proven site without a contract has sold for ~$0.1M per MW vs $4.4-5.9M per MW operating. If we're the cheapest finder, selling early hands the value away."],
-  ["Two founders, part-time, one in college, building power plants?","Full-time the day we're funded. First two years are exploration: data and hardware, which is what we've built. We hire plant expertise before the first build, not before the first well."],
-  ["How is this different from Zanskar?","Same model, different cost of discovery. They proved integration works. We attack the expensive step, measuring in existing wells for ~$1,200 a reading, so we can test far more sites."],
-  ["Is the top-1% back-test real?","Real on published discovery dates: 57% of later discoveries in our top 1% vs 28% next-to-known (2005). Re-dated from raw records the edge shrinks but still beats next-to-known every year; today we're best at step-outs, the probe reaches further."],
-  ["The model ties the public method on temperature.","Far from wells every model ties, because the data stops. That's why the sensor: the data is the edge, not the algorithm."],
- ]],
- ["Never say", [
-  ["Traps","\"Our model is better\" · \"We have land\" (zero signed) · +$10.9M / 30x / 1 TW · a plant IRR · \"Zanskar overextended / only auctions\" · \"proprietary\" · lithium · landowner names · AUC, posterior, transformer."],
- ]],
-];
-const QS = []; SECTIONS.forEach(([s, items], si) => items.forEach(([t, a], i) => QS.push({id: "s" + si + "q" + i, sec: s, t, a})));
-
-// ---------- state + sync ----------
 const ROOM = (location.hash.slice(1) || "calescent-yc-9nov-r7k2m9wq").replace(/[^a-zA-Z0-9_-]/g, "");
-const ME_KEY = "claims-me";
-let me = null; try { me = localStorage.getItem(ME_KEY); } catch (e) {}
 const CID = Math.random().toString(36).slice(2, 10);
-const state = {};   // key -> {v, ts}
-let sel = 0, openId = null, lastLive = null;
+const state = {};  // key -> {v, ts}
+const T = [], status = {};
+const NEXT = {"": "D", D: "H", H: ""};
 
-function apply(key, v, ts, src) {
-  const cur = state[key];
-  if (cur && cur.ts >= ts) return false;
-  state[key] = {v, ts};
-  if (key.startsWith("L:") && src !== "local" && (!lastLive || ts > lastLive.ts)) lastLive = {key, ts};
-  return true;
-}
-function set(key, v) {
+function apply(k, v, ts) { const c = state[k]; if (c && c.ts >= ts) return false; state[k] = {v, ts}; return true; }
+function set(k, v) {
   const ts = Date.now() * 1000 + Math.floor(Math.random() * 1000);
-  apply(key, v, ts, "local"); render();
-  const msg = {k: key, v, ts, c: CID};
-  T.forEach(t => { try { t.send(msg); } catch (e) {} });
+  apply(k, v, ts); render();
+  const m = {k, v, ts, c: CID};
+  T.forEach(t => { try { t.send(m); } catch (e) {} });
 }
-function recv(msg, src) {
-  if (!msg || typeof msg.k !== "string" || typeof msg.ts !== "number") return;
-  if (apply(msg.k, msg.v, msg.ts, src)) render();
-}
+function recv(m) { if (m && typeof m.k === "string" && typeof m.ts === "number" && apply(m.k, m.v, m.ts)) render(); }
+function setStatus(n, ok) { status[n] = ok; const any = Object.values(status).some(Boolean);
+  document.getElementById("status").innerHTML = '<span class="dot' + (any ? " on" : "") + '"></span>' + (any ? "live" : "connecting…"); }
 
-// transport 1: MQTT over WSS (retained per key)
-const T = [];
-const status = {};
-function setStatus(name, ok) { status[name] = ok; renderStatus(); }
-(function mqttT() {
-  const name = "mqtt";
+// MQTT over WSS, retained per key
+(function () {
   const s = document.createElement("script");
   s.src = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js";
   s.onload = () => {
     const base = "calescent/claims/" + ROOM + "/";
-    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "cl_" + CID, reconnectPeriod: 2000, connectTimeout: 8000, clean: true});
-    cl.on("connect", () => { setStatus(name, true); cl.subscribe(base + "#"); });
-    cl.on("close", () => setStatus(name, false));
-    cl.on("offline", () => setStatus(name, false));
-    cl.on("error", () => setStatus(name, false));
-    cl.on("message", (topic, payload) => { if (!payload.length) return; try { recv(JSON.parse(payload.toString()), name); } catch (e) {} });
+    const cl = mqtt.connect("wss://broker.emqx.io:8084/mqtt", {clientId: "cl_" + CID, reconnectPeriod: 2000, connectTimeout: 8000});
+    cl.on("connect", () => { setStatus("mqtt", true); cl.subscribe(base + "#"); });
+    ["close", "offline", "error"].forEach(e => cl.on(e, () => setStatus("mqtt", false)));
+    cl.on("message", (t, p) => { if (p.length) try { recv(JSON.parse(p.toString())); } catch (e) {} });
     T.push({send: m => cl.publish(base + encodeURIComponent(m.k), JSON.stringify(m), {retain: true, qos: 1})});
   };
-  s.onerror = () => setStatus(name, false);
   document.head.appendChild(s);
-  setStatus(name, false);
+  setStatus("mqtt", false);
 })();
-
-// transport 2: ntfy.sh (HTTPS on 443, replays cached history)
-(function ntfyT() {
-  const name = "ntfy";
+// ntfy.sh, second channel on port 443
+(function () {
   const topic = "https://ntfy.sh/" + ROOM;
-  let es = null;
-  function open() {
-    es = new EventSource(topic + "/sse?since=all");
-    es.onopen = () => setStatus(name, true);
-    es.onmessage = ev => { try { const d = JSON.parse(ev.data); if (d.event === "message") recv(JSON.parse(d.message), name); } catch (e) {} };
-    es.onerror = () => { setStatus(name, false); };
-  }
-  open();
-  T.push({send: m => fetch(topic, {method: "POST", body: JSON.stringify(m)}).then(r => { if (!r.ok) setStatus(name, false); }).catch(() => setStatus(name, false))});
-  setStatus(name, false);
+  const es = new EventSource(topic + "/sse?since=all");
+  es.onopen = () => setStatus("ntfy", true);
+  es.onerror = () => setStatus("ntfy", false);
+  es.onmessage = ev => { try { const d = JSON.parse(ev.data); if (d.event === "message") recv(JSON.parse(d.message)); } catch (e) {} };
+  T.push({send: m => fetch(topic, {method: "POST", body: JSON.stringify(m)}).catch(() => {})});
 })();
+// same-machine tabs
+try { const bc = new BroadcastChannel("claims-" + ROOM); bc.onmessage = e => recv(e.data); T.push({send: m => bc.postMessage(m)}); } catch (e) {}
 
-// transport 3: same-machine tabs
-(function bcT() {
-  try {
-    const bc = new BroadcastChannel("claims-" + ROOM);
-    bc.onmessage = e => recv(e.data, "bc");
-    T.push({send: m => bc.postMessage(m)});
-  } catch (e) {}
-})();
-
-// ---------- UI ----------
-const NAME = {D: "Dhruv", H: "Hudson"};
-function setMe(x) { me = x; try { localStorage.setItem(ME_KEY, x); } catch (e) {} document.getElementById("gate").style.display = "none"; renderMe(); }
-function renderMe() { document.querySelectorAll(".me button").forEach(b => b.classList.toggle("on", b.classList.contains(me))); }
-function renderStatus() {
-  const any = Object.values(status).some(Boolean);
-  document.getElementById("status").innerHTML = (any ? '<span class="dot on"></span>live' : '<span class="dot"></span>connecting…') +
-    ' <span title="sync channels">(' + Object.entries(status).map(([k, v]) => k + (v ? "✓" : "✗")).join(" ") + ")</span>";
-}
-function liveItems() {
-  return Object.entries(state).filter(([k, s]) => k.startsWith("L:") && s.v && s.v.text)
-    .map(([k, s]) => ({id: k.slice(2), t: s.v.text, a: "", sec: "Live", ts: s.v.at || s.ts})).sort((a, b) => b.ts - a.ts);
-}
-function visible() {
-  const hide = document.getElementById("hideDone").checked;
-  const all = liveItems().concat(QS);
-  return hide ? all.filter(q => !(state["C:" + q.id] && state["C:" + q.id].v && state["C:" + q.id].v.done)) : all;
-}
-function claimOf(id) { const s = state["C:" + id]; return s && s.v ? s.v : {by: "", done: false}; }
-function setClaim(id, patch) { set("C:" + id, Object.assign({}, claimOf(id), patch)); }
-function toggleBy(id, who) { const c = claimOf(id); setClaim(id, {by: c.by === who ? "" : who}); }
-function esc(s) { return String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+function count() { const n = state.n && state.n.v; return Math.max(20, +n || 0); }
 function render() {
-  const items = visible();
-  if (sel >= items.length) sel = Math.max(0, items.length - 1);
-  let html = "", sec = null, n = 0;
-  items.forEach((q, i) => {
-    if (q.sec !== sec) { sec = q.sec; html += "<h2>" + esc(sec === "Live" ? "Live (asked in the call)" : sec) + "</h2>"; }
-    const c = claimOf(q.id);
-    const cls = ["q", c.by ? "c" + c.by : "", c.done ? "done" : "", i === sel ? "sel" : "", openId === q.id ? "open" : "",
-      (lastLive && "L:" + q.id === lastLive.key && Date.now() * 1000 - lastLive.ts < 30e6) ? "livenew" : ""].join(" ");
-    html += '<div class="' + cls + '" data-i="' + i + '" data-id="' + esc(q.id) + '">' +
-      '<div class="btns"><button class="D' + (c.by === "D" ? " on" : "") + '" title="Dhruv takes it" data-act="D">D</button>' +
-      '<button class="H' + (c.by === "H" ? " on" : "") + '" title="Hudson takes it" data-act="H">H</button>' +
-      '<button class="X' + (c.done ? " on" : "") + '" title="Answered" data-act="X">✓</button></div>' +
-      '<div class="body" data-act="open"><span class="t">' + (q.sec === "Live" ? "" : '<span class="num">' + (++n) + "</span>") + esc(q.t) + "</span>" +
-      (c.by ? '<span class="who ' + c.by + '">' + NAME[c.by] + "</span>" : "") +
-      (q.a ? '<div class="a">' + esc(q.a) + "</div>" : "") + "</div></div>";
-  });
-  document.getElementById("list").innerHTML = html;
+  const g = document.getElementById("grid"), n = count();
+  let h = "";
+  for (let i = 1; i <= n; i++) { const s = state["t" + i], v = s ? s.v : "";
+    h += '<button class="t ' + (v || "") + '" data-i="' + i + '" title="' + (v === "D" ? "Dhruv" : v === "H" ? "Hudson" : "") + '">' + i + "</button>"; }
+  g.innerHTML = h;
 }
-document.getElementById("list").addEventListener("click", e => {
-  const row = e.target.closest(".q"); if (!row) return;
-  const id = row.dataset.id, act = e.target.closest("[data-act]") && e.target.closest("[data-act]").dataset.act;
-  sel = +row.dataset.i;
-  if (act === "D" || act === "H") toggleBy(id, act);
-  else if (act === "X") setClaim(id, {done: !claimOf(id).done});
-  else { openId = openId === id ? null : id; render(); }
+document.getElementById("grid").addEventListener("click", e => {
+  const b = e.target.closest(".t"); if (!b) return;
+  const k = "t" + b.dataset.i, cur = state[k] ? state[k].v : "";
+  set(k, e.shiftKey ? (cur === "H" ? "" : "H") : NEXT[cur || ""]);
 });
-function addLive(e) {
-  e.preventDefault();
-  const inp = document.getElementById("liveIn"), text = inp.value.trim();
-  if (!text) return;
-  const id = "L" + Date.now().toString(36) + CID.slice(0, 3);
-  set("L:" + id, {text, at: Date.now() * 1000});
-  if (me) setClaim(id, {by: me});
-  inp.value = ""; inp.blur(); sel = 0; render();
-}
-function resetAll() {
-  if (!confirm("Clear every claim and live question for both of you?")) return;
-  Object.keys(state).forEach(k => set(k, k.startsWith("L:") ? {text: ""} : {by: "", done: false}));
-}
-document.addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT") { if (e.key === "Escape") e.target.blur(); return; }
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const items = visible(), q = items[sel];
-  const k = e.key;
-  if (k === "/") { e.preventDefault(); document.getElementById("liveIn").focus(); return; }
-  if (k === "j" || k === "ArrowDown") { sel = Math.min(items.length - 1, sel + 1); render(); scrollSel(); e.preventDefault(); return; }
-  if (k === "k" || k === "ArrowUp") { sel = Math.max(0, sel - 1); render(); scrollSel(); e.preventDefault(); return; }
-  if (!q) return;
-  if (k === "c" && me) toggleBy(q.id, me);
-  else if (k === "d") toggleBy(q.id, "D");
-  else if (k === "h") toggleBy(q.id, "H");
-  else if (k === "x") setClaim(q.id, {done: !claimOf(q.id).done});
-  else if (k === "u") setClaim(q.id, {by: "", done: false});
-  else if (k === "Enter" || k === " ") { e.preventDefault(); openId = openId === q.id ? null : q.id; render(); }
-});
-function scrollSel() { const el = document.querySelector(".q.sel"); if (el) el.scrollIntoView({block: "nearest"}); }
-if (me) { document.getElementById("gate").style.display = "none"; }
-renderMe(); renderStatus(); render();
-setInterval(() => { if (lastLive) render(); }, 10000);
+function more() { set("n", count() + 10); }
+function resetAll() { if (!confirm("Clear all tiles for both of you?")) return; for (let i = 1; i <= count(); i++) if (state["t" + i] && state["t" + i].v) set("t" + i, ""); }
+render();
 </script>
 </body>
 </html>
